@@ -1,0 +1,6 @@
+{"timestamp":"2025-10-28T09:00:00Z","user_id":"user1","action":"page_view","page_id":"home"}
+{"timestamp":"2025-10-28T09:05:00Z","user_id":"user1","action":"page_view","page_id":"search"}
+{"timestamp":"2025-10-28T09:45:00Z","user_id":"user1","action":"page_view","page_id":"product-123"}
+{"timestamp":"2025-10-28T10:00:00Z","user_id":"user2","action":"page_view","page_id":"home"}
+{"timestamp":"2025-10-28T10:10:00Z","user_id":"user2","action":"page_view","page_id":"product-123"}
+{"timestamp":"2025-10-28T11:00:00Z","user_id":"user3","action":"page_view","page_id":"home"}

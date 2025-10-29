@@ -12,14 +12,42 @@ from datetime import datetime, timedelta
 import json
 import base64
 import io
+import subprocess
+import logging
 
+# ...existing code...
 
 def create_spark_session():
-    """Initialize Spark session with appropriate configs"""
-    return SparkSession.builder \
-        .appName("clickstream-analysis") \
-        .config("spark.sql.session.timeZone", "UTC") \
-        .getOrCreate()
+    """Initialize Spark session with appropriate configs and print diagnostics on failure"""
+    # Diagnostics: java presence and version
+    java_exe = shutil.which("java")
+    print("JAVA_HOME =", os.environ.get("JAVA_HOME"))
+    print("which java =", java_exe)
+    if java_exe:
+        try:
+            ver = subprocess.run([java_exe, "-version"], capture_output=True, text=True)
+            # java prints version to stderr
+            print("java -version output:\n", ver.stderr.strip() or ver.stdout.strip())
+        except Exception as e:
+            print("failed running java -version:", e)
+
+    # Help avoid driver bind issues inside containers
+    os.environ.setdefault("PYSPARK_SUBMIT_ARGS", "--conf spark.driver.bindAddress=127.0.0.1 pyspark-shell")
+
+    try:
+        return SparkSession.builder \
+            .appName("clickstream-analysis") \
+            .config("spark.sql.session.timeZone", "UTC") \
+            .getOrCreate()
+    except Exception as e:
+        # Print actionable diagnostics before re-raising
+        print("Failed to start SparkSession. Diagnostics:")
+        print("  JAVA_HOME:", os.environ.get("JAVA_HOME"))
+        print("  java executable:", java_exe)
+        print("  PYSPARK_SUBMIT_ARGS:", os.environ.get("PYSPARK_SUBMIT_ARGS"))
+        # Re-raise to preserve full traceback in logs
+        raise
+# ...existing code...
 
 def load_and_prepare_data(spark, input_csv):
     """Load and prepare the clickstream data"""
@@ -269,4 +297,5 @@ def main():
 if __name__ == "__main__":
 
     main()
+
 

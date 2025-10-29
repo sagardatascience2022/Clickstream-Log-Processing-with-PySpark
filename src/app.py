@@ -15,11 +15,40 @@ import io
 
 
 def create_spark_session():
-    """Initialize Spark session with appropriate configs"""
-    return SparkSession.builder \
-        .appName("clickstream-analysis") \
-        .config("spark.sql.session.timeZone", "UTC") \
-        .getOrCreate()
+    """Initialize Spark session with appropriate configs and clearer failure messages"""
+    import subprocess
+    java_path = shutil.which("java")
+    if java_path:
+        try:
+            ver = subprocess.run([java_path, "-version"], capture_output=True, text=True)
+            # print version info to the process logs (Streamlit will show stderr/stdout)
+            print("java -version output:\n", ver.stderr.strip() or ver.stdout.strip())
+        except Exception:
+            pass
+
+    try:
+        return SparkSession.builder \
+            .appName("clickstream-analysis") \
+            .config("spark.sql.session.timeZone", "UTC") \
+            .config("spark.driver.extraJavaOptions", "-Djava.security.egd=file:/dev/./urandom") \
+            .getOrCreate()
+    except Exception as e:
+        # Provide an actionable message and exit (avoids the redacted PySparkRuntimeError)
+        try:
+            import pyspark
+            pyspark_ver = getattr(pyspark, "__version__", "unknown")
+        except Exception:
+            pyspark_ver = "unavailable"
+        sys.exit(
+            "Failed to start Spark Java gateway.\n"
+            f"java executable: {java_path}\n"
+            f"JAVA_HOME: {os.environ.get('JAVA_HOME')}\n"
+            f"pyspark version: {pyspark_ver}\n"
+            f"error: {e}\n\n"
+            "If Java is missing or incompatible, install OpenJDK 17 and set JAVA_HOME, e.g.:\n"
+            "sudo apt update && sudo apt install -y openjdk-17-jdk-headless\n"
+            "export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64\n"
+        )
 
 def load_and_prepare_data(spark, input_csv):
     """Load and prepare the clickstream data"""
@@ -269,4 +298,5 @@ def main():
 if __name__ == "__main__":
 
     main()
+
 

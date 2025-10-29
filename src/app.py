@@ -1,3 +1,25 @@
+import os
+import sys
+import shutil
+
+# Try to set a sensible JAVA_HOME if not set and a common path exists
+if "JAVA_HOME" not in os.environ:
+    for candidate in (
+        "/usr/lib/jvm/java-17-openjdk-amd64",
+        "/usr/lib/jvm/java-11-openjdk-amd64",
+        "/usr/lib/jvm/default-java",
+    ):
+        if os.path.exists(candidate):
+            os.environ["JAVA_HOME"] = candidate
+            os.environ["PATH"] = os.path.join(candidate, "bin") + os.pathsep + os.environ.get("PATH", "")
+            break
+
+# If no java on PATH, stop with actionable message
+if not shutil.which("java"):
+    sys.exit(
+        "Java runtime not found. Install OpenJDK (e.g. "
+        "'sudo apt install openjdk-17-jdk-headless') and set JAVA_HOME."
+    )
 """
 Enhanced Streamlit app for interactive clickstream analysis with additional features
 """
@@ -269,4 +291,5 @@ def main():
 if __name__ == "__main__":
 
     main()
+
 

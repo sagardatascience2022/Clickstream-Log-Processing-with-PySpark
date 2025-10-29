@@ -3,7 +3,6 @@ Enhanced Streamlit app for interactive clickstream analysis with additional feat
 """
 import streamlit as st
 import pandas as pd
-import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 from pyspark.sql import SparkSession
@@ -270,3 +269,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
